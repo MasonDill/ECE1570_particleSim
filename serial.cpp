@@ -52,14 +52,14 @@ int main( int argc, char **argv )
     //  simulate a number of time steps
     //
     double simulation_time = read_timer( );
-	
-    for( int step = 0; step < NSTEPS; step++ )
-    {
-    //create the quadtree every time step to account for movement of particles
-    Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
+	Quadtree* tree = new Quadtree(boundary, capacity, getInteractionRange(), nullptr);
     for (int i = 0; i < n; i++) {
         tree->insert(&particles[i]);
     }
+
+    for( int step = 0; step < NSTEPS; step++ )
+    {
+    //create the quadtree every time step to account for movement of particles
 
 	navg = 0;
     davg = 0.0;

@@ -17,16 +17,24 @@ Rectangle::Rectangle(double x, double y, double w, double h) {
     this->h = h;
 }
 
-Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, Quadtree* parent) {
+Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, unsigned int maximum_interaction_distance, Quadtree* parent) {
+        this -> maximum_interaction_distance = maximum_interaction_distance;
+        
         this->boundary = boundary;
         this->capacity = capacity;
         this->particles = new particle_t*[capacity];
         this->particles_count = 0;
 
-        this->northwest = NULL;
-        this->northeast = NULL;
-        this->southwest = NULL;
-        this->southeast = NULL;
+        if(boundary.w > maximum_interaction_distance || boundary.h > maximum_interaction_distance) {
+            this->subdivide();
+        }
+        else
+        {
+            this->northwest = nullptr;
+            this->northeast = nullptr;
+            this->southwest = nullptr;
+            this->southeast = nullptr;
+        }
 
         this->center_of_mass.x = boundary.x;
         this->center_of_mass.y = boundary.y;
@@ -63,30 +71,30 @@ void Quadtree::subdivide(){
     double se_x = x + w/2;
     double se_y = y - h/2;
     
-    this->northwest = new Quadtree(Rectangle(nw_x, nw_y, w/2, h/2), this->capacity, this);
-    this->northeast = new Quadtree(Rectangle(ne_x, ne_y, w/2, h/2), this->capacity, this);
-    this->southwest = new Quadtree(Rectangle(sw_x, sw_y, w/2, h/2), this->capacity, this);
-    this->southeast = new Quadtree(Rectangle(se_x, se_y, w/2, h/2), this->capacity, this);
+    this->northwest = new Quadtree(Rectangle(nw_x, nw_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this);
+    this->northeast = new Quadtree(Rectangle(ne_x, ne_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this);
+    this->southwest = new Quadtree(Rectangle(sw_x, sw_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this);
+    this->southeast = new Quadtree(Rectangle(se_x, se_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this);
 
     //place the particles in the correct section
-    for (int i = 0; i < this->particles_count; i++) {
-        if (this->northwest->inboundary(this->particles[i])) {
-            this->northwest->insert(this->particles[i]);
-            this->particles[i] = NULL;
-        }
-        else if (this->northeast->inboundary(this->particles[i])) {
-            this->northeast->insert(this->particles[i]);
-            this->particles[i] = NULL;
-        }
-        else if (this->southwest->inboundary(this->particles[i])) {
-            this->southwest->insert(this->particles[i]);
-            this->particles[i] = NULL;
-        }
-        else if (this->southeast->inboundary(this->particles[i])) {
-            this->southeast->insert(this->particles[i]);
-            this->particles[i] = NULL;
-        }
-    }
+    // for (int i = 0; i < this->particles_count; i++) {
+    //     if (this->northwest->inboundary(this->particles[i])) {
+    //         this->northwest->insert(this->particles[i]);
+    //         this->particles[i] = NULL;
+    //     }
+    //     else if (this->northeast->inboundary(this->particles[i])) {
+    //         this->northeast->insert(this->particles[i]);
+    //         this->particles[i] = NULL;
+    //     }
+    //     else if (this->southwest->inboundary(this->particles[i])) {
+    //         this->southwest->insert(this->particles[i]);
+    //         this->particles[i] = NULL;
+    //     }
+    //     else if (this->southeast->inboundary(this->particles[i])) {
+    //         this->southeast->insert(this->particles[i]);
+    //         this->particles[i] = NULL;
+    //     }
+    // }
     //reassert particles_count to full capacity to prevent future insertion
     this->particles_count = this->capacity;
 }
@@ -143,3 +151,13 @@ void Quadtree::insert(particle_t* particle){
     }
 
 }   
+
+void Quadtree::remove(particle_t* particle){
+    for(int i = 0; i < this->particles_count; i++){
+        if(this->particles[i] == particle){
+            this->particles[i] = NULL;
+            this->particles_count--;
+            return;
+        }
+    }
+}
