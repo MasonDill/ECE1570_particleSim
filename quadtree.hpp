@@ -2,6 +2,7 @@
 #include <list>
 class Rectangle {
     public:
+        //center point (x,y) and half-width and half-height
         double x, y, w, h;
         Rectangle();
         Rectangle(double x, double y, double w, double h);
@@ -17,10 +18,11 @@ class Quadtree {
         unsigned int particles_count;
         //models the quadtree section as a single particle at the midpoint of the section
         particle_t center_of_mass;
+        Quadtree* parent;
         //defines the particles in the quadtree section
         particle_t** particles;
 
-        Quadtree(Rectangle boundary, unsigned int capacity);
+        Quadtree(Rectangle boundary, unsigned int capacity, Quadtree* parent);
         void insert(particle_t* particle);
         bool hasChildren();
         std::list <Quadtree*>* getLeaves(std::list <Quadtree*>* leaves);

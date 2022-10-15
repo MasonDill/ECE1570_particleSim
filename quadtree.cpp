@@ -17,7 +17,7 @@ Rectangle::Rectangle(double x, double y, double w, double h) {
     this->h = h;
 }
 
-Quadtree::Quadtree(Rectangle boundary, unsigned int capacity) {
+Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, Quadtree* parent) {
         this->boundary = boundary;
         this->capacity = capacity;
         this->particles = new particle_t*[capacity];
@@ -30,6 +30,8 @@ Quadtree::Quadtree(Rectangle boundary, unsigned int capacity) {
 
         this->center_of_mass.x = boundary.x;
         this->center_of_mass.y = boundary.y;
+
+        this->parent = parent;
 }
 
 std::list <Quadtree*>* Quadtree::getLeaves(std::list <Quadtree*>* leaves) {
@@ -61,27 +63,28 @@ void Quadtree::subdivide(){
     double se_x = x + w/2;
     double se_y = y - h/2;
     
-    this->northwest = new Quadtree(Rectangle(nw_x, nw_y, w/2, h/2), this->capacity);
-    this->northeast = new Quadtree(Rectangle(ne_x, ne_y, w/2, h/2), this->capacity);
-    this->southwest = new Quadtree(Rectangle(sw_x, sw_y, w/2, h/2), this->capacity);
-    this->southeast = new Quadtree(Rectangle(se_x, se_y, w/2, h/2), this->capacity);
+    this->northwest = new Quadtree(Rectangle(nw_x, nw_y, w/2, h/2), this->capacity, this);
+    this->northeast = new Quadtree(Rectangle(ne_x, ne_y, w/2, h/2), this->capacity, this);
+    this->southwest = new Quadtree(Rectangle(sw_x, sw_y, w/2, h/2), this->capacity, this);
+    this->southeast = new Quadtree(Rectangle(se_x, se_y, w/2, h/2), this->capacity, this);
 
     //place the particles in the correct section
     for (int i = 0; i < this->particles_count; i++) {
         if (this->northwest->inboundary(this->particles[i])) {
             this->northwest->insert(this->particles[i]);
-            continue;
+            this->particles[i] = NULL;
         }
         else if (this->northeast->inboundary(this->particles[i])) {
             this->northeast->insert(this->particles[i]);
-            continue;
+            this->particles[i] = NULL;
         }
         else if (this->southwest->inboundary(this->particles[i])) {
             this->southwest->insert(this->particles[i]);
-            continue;
+            this->particles[i] = NULL;
         }
         else if (this->southeast->inboundary(this->particles[i])) {
             this->southeast->insert(this->particles[i]);
+            this->particles[i] = NULL;
         }
     }
     //reassert particles_count to full capacity to prevent future insertion
@@ -103,10 +106,10 @@ bool Quadtree::inboundary(particle_t* particle){
 
     double w = this->boundary.w;
     double h = this->boundary.h;
-    double x_min = this->boundary.x - w/2;
-    double x_max = this->boundary.x + w/2;
-    double y_min = this->boundary.y - h/2;
-    double y_max = this->boundary.y + h/2;
+    double x_min = this->boundary.x - w;
+    double x_max = this->boundary.x + w;
+    double y_min = this->boundary.y - h;
+    double y_max = this->boundary.y + h;
     if (x >= x_min && x <= x_max && y >= y_min && y <= y_max) {
         return true;
     }
@@ -123,6 +126,8 @@ void Quadtree::insert(particle_t* particle){
     if (this->particles_count < this->capacity){
         this->particles[this->particles_count] = particle;
         this->particles_count++;
+        this->center_of_mass.x = (this->center_of_mass.x + particle->x / this->particles_count);
+        this->center_of_mass.y = (this->center_of_mass.y + particle->y / this->particles_count);
         return;
     }
     //else there is no space in the quadtree section, subdivide it and add the particle to the correct section

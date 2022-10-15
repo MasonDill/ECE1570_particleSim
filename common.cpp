@@ -15,7 +15,7 @@ double size;
 //
 #define density 0.0005
 #define mass    0.01
-#define cutoff  0.01
+#define cutoff  0.00005
 #define min_r   (cutoff/100)
 #define dt      0.0005
 
@@ -87,6 +87,16 @@ void init_particles( int n, particle_t *p )
     free( shuffle );
 }
 
+
+//
+// check if two particles are within cutoff distance
+//
+bool withinInteractionRange(double r2) {
+    if( r2 > cutoff*cutoff )
+        return false;
+    return true;
+}
+
 //
 //  interact two particles
 //
@@ -96,7 +106,7 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
     double dx = neighbor.x - particle.x;
     double dy = neighbor.y - particle.y;
     double r2 = dx * dx + dy * dy;
-    if( r2 > cutoff*cutoff )
+    if(!withinInteractionRange(r2))
         return;
 	if (r2 != 0)
         {
