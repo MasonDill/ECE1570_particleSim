@@ -20,12 +20,29 @@ Rectangle::Rectangle(double x, double y, double w, double h) {
 Quadtree::Quadtree(Rectangle boundary, unsigned int capacity) {
         this->boundary = boundary;
         this->capacity = capacity;
-        this->particles = new particle_t[capacity];
+        this->particles = new particle_t*[capacity];
         this->particles_count = 0;
+
         this->northwest = NULL;
         this->northeast = NULL;
         this->southwest = NULL;
         this->southeast = NULL;
+
+        this->center_of_mass.x = boundary.x;
+        this->center_of_mass.y = boundary.y;
+}
+
+std::list <Quadtree*>* Quadtree::getLeaves(std::list <Quadtree*>* leaves) {
+    if(this->hasChildren()) {
+        leaves = this->northwest->getLeaves(leaves);
+        leaves = this->northeast->getLeaves(leaves);
+        leaves = this->southwest->getLeaves(leaves);
+        leaves = this->southeast->getLeaves(leaves);
+    }
+    else {
+        leaves->push_back(this);
+    }
+    return leaves;
 }
 
 //divide the quadtree into four sections
@@ -65,13 +82,23 @@ void Quadtree::subdivide(){
             this->southeast->insert(this->particles[i]);
         }
     }
-    //reasert particles_count to full capacity to prevent future insertion
+    //reassert particles_count to full capacity to prevent future insertion
     this->particles_count = this->capacity;
 }
 
-bool Quadtree::inboundary(particle_t particle){
-    double x = particle.x;
-    double y = particle.y;
+bool Quadtree::hasChildren() {
+    if (this->northwest == NULL || this->northeast == NULL || this->southwest == NULL || this->southeast == NULL) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+bool Quadtree::inboundary(particle_t* particle){
+    double x = particle->x;
+    double y = particle->y;
+
     double w = this->boundary.w;
     double h = this->boundary.h;
     double x_min = this->boundary.x - w/2;
@@ -84,7 +111,7 @@ bool Quadtree::inboundary(particle_t particle){
     return false;
 }
 
-void Quadtree::insert(particle_t particle){
+void Quadtree::insert(particle_t* particle){
     //Do nothing if the particle is not in the boundary
     if (!this->inboundary(particle)) {
         return;

@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include <list>
 #include "common.h"
 #include "quadtree.hpp"
 //
 //  benchmarking program
-//
+
 int main( int argc, char **argv )
 {    
     int navg,nabsavg=0;
@@ -52,7 +53,7 @@ int main( int argc, char **argv )
     // insert the particles into the quadtree
     //
     for (int i = 0; i < n; i++) {
-        tree->insert(particles[i]);
+        tree->insert(&particles[i]);
     }
 
     //
@@ -82,7 +83,30 @@ int main( int argc, char **argv )
         // }
         //  method 2 compute forces of one particle to all others
         //  performing calculations as a Barnes–Hut simulation with efficiency O(nlogn)
+        for( int i = 0; i < n; i++ )
+        {
+            particles[i].ax = particles[i].ay = 0;
+        }
 
+        std::list <Quadtree*>* leaves = tree->getLeaves(new std::list <Quadtree*>());
+        for (std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it) {
+            Quadtree* subquad = *it;
+            //  for each particle in the subquadtree section,
+            for (int i = 0; i < subquad->particles_count; i++) {
+                //calculate the forces of the particles each other in the subquadtree
+                for (int j = i+1; j < tree->particles_count; j++) {
+                    apply_force( *subquad->particles[j], *tree->particles[i],&dmin,&davg,&navg);
+                    apply_force( *subquad->particles[i], *tree->particles[j],&dmin,&davg,&navg);
+                }
+                //calculate the forces of the particle on all other quadtree sections
+                for (std::list<Quadtree*>::iterator it2 = leaves->begin(); it2 != leaves->end(); ++it2) {
+                    Quadtree* subquad2 = *it2;
+                    if (subquad != subquad2) {
+                        apply_force( *subquad->particles[i], subquad2->center_of_mass,&dmin,&davg,&navg);
+                    }
+                }
+            }
+        }
         
         //  move particles
         for( int i = 0; i < n; i++ ) 
