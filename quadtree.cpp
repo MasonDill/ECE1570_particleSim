@@ -51,6 +51,7 @@ void Quadtree::subdivide(){
     double y = this->boundary.y;
     double w = this->boundary.w;
     double h = this->boundary.h;
+
     double nw_x = x - w/2;
     double nw_y = y + h/2;
     double ne_x = x + w/2;
@@ -59,6 +60,7 @@ void Quadtree::subdivide(){
     double sw_y = y - h/2;
     double se_x = x + w/2;
     double se_y = y - h/2;
+    
     this->northwest = new Quadtree(Rectangle(nw_x, nw_y, w/2, h/2), this->capacity);
     this->northeast = new Quadtree(Rectangle(ne_x, ne_y, w/2, h/2), this->capacity);
     this->southwest = new Quadtree(Rectangle(sw_x, sw_y, w/2, h/2), this->capacity);

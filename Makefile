@@ -13,26 +13,26 @@ TARGETS = serial openmp autograder
 all:	$(TARGETS)
 
 serial: serial.o common.o quadtree.o
-	$(CC) -o $@ serial.o common.o quadtree.o -lm
+	$(CC) -o $@ serial.o common.o quadtree.o -lm -g
 autograder: autograder.o common.o
-	$(CC) -o $@ autograder.o common.o -lm
+	$(CC) -o $@ autograder.o common.o -lm -g
 openmp: openmp.o common.o
-	$(CC) -o $@ $(OPENMP) openmp.o common.o -lm
+	$(CC) -o $@ $(OPENMP) openmp.o common.o -lm -g
 mpi: mpi.o common.o
-	$(MPCC) -o $@ $(MPILIBS) mpi.o common.o -lm
+	$(MPCC) -o $@ $(MPILIBS) mpi.o common.o -lm -g
 
 autograder.o: autograder.cpp common.h
-	$(CC) -c $(CFLAGS) autograder.cpp
+	$(CC) -c $(CFLAGS) autograder.cpp -g
 openmp.o: openmp.cpp common.h
-	$(CC) -c $(OPENMP) $(CFLAGS) openmp.cpp
+	$(CC) -c $(OPENMP) $(CFLAGS) openmp.cpp -g
 serial.o: serial.cpp common.h
-	$(CC) -c $(CFLAGS) serial.cpp
+	$(CC) -c $(CFLAGS) serial.cpp -g
 mpi.o: mpi.cpp common.h
-	$(MPCC) -c $(MPI) $(CFLAGS) mpi.cpp
+	$(MPCC) -c $(MPI) $(CFLAGS) mpi.cpp -g
 common.o: common.cpp common.h
-	$(CC) -c $(CFLAGS) common.cpp
+	$(CC) -c $(CFLAGS) common.cpp -g
 quadtree.o: quadtree.cpp quadtree.hpp
-	$(CC) -c $(CFLAGS) quadtree.cpp
+	$(CC) -c $(CFLAGS) quadtree.cpp -g
 
 clean:
 	rm -f *.o $(TARGETS) *.stdout *.txt

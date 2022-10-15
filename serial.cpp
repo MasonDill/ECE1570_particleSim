@@ -24,7 +24,7 @@ int main( int argc, char **argv )
         printf( "-no turns off all correctness checks and particle output\n");
         return 0;
     }
-    //1 is the default capacity of the quadtree
+    //16 is the default capacity of the quadtree
     int capacity = read_int( argc, argv, "-c", 1);
     int n = read_int( argc, argv, "-n", 1000 );
 
@@ -44,17 +44,8 @@ int main( int argc, char **argv )
     //
     // initialize the quadtree
     //
-    
      double middle = 0.5 * get_size();
      Rectangle boundary = Rectangle(middle, middle, middle, middle);
-     Quadtree* tree = new Quadtree(boundary, capacity);
-
-    //
-    // insert the particles into the quadtree
-    //
-    for (int i = 0; i < n; i++) {
-        tree->insert(&particles[i]);
-    }
 
     //
     //  simulate a number of time steps
@@ -63,6 +54,14 @@ int main( int argc, char **argv )
 	
     for( int step = 0; step < NSTEPS; step++ )
     {
+    Quadtree* tree = new Quadtree(boundary, capacity);
+
+    //
+    // insert the particles into the quadtree
+    //
+    for (int i = 0; i < n; i++) {
+        tree->insert(&particles[i]);
+    }
 	navg = 0;
     davg = 0.0;
 	dmin = 1.0;
@@ -81,8 +80,11 @@ int main( int argc, char **argv )
         //     }
 				
         // }
+
+
         //  method 2 compute forces of one particle to all others
         //  performing calculations as a Barnes–Hut simulation with efficiency O(nlogn)
+        unsigned int number_of_particles = 0;
         for( int i = 0; i < n; i++ )
         {
             particles[i].ax = particles[i].ay = 0;
@@ -93,12 +95,12 @@ int main( int argc, char **argv )
             Quadtree* subquad = *it;
             //  for each particle in the subquadtree section,
             for (int i = 0; i < subquad->particles_count; i++) {
-                //calculate the forces of the particles each other in the subquadtree
+                //calculate the forces of the particles on each other in the subquadtree
                 for (int j = i+1; j < tree->particles_count; j++) {
                     apply_force( *subquad->particles[j], *tree->particles[i],&dmin,&davg,&navg);
                     apply_force( *subquad->particles[i], *tree->particles[j],&dmin,&davg,&navg);
                 }
-                //calculate the forces of the particle on all other quadtree sections
+                //calculate the forces of all other subquadtrees to this particle
                 for (std::list<Quadtree*>::iterator it2 = leaves->begin(); it2 != leaves->end(); ++it2) {
                     Quadtree* subquad2 = *it2;
                     if (subquad != subquad2) {
