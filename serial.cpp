@@ -19,10 +19,12 @@ int main( int argc, char **argv )
         printf( "-n <int> to set the number of particles\n" );
         printf( "-o <filename> to specify the output file name\n" );
         printf( "-s <filename> to specify a summary file name\n" );
+        printf( "-c <int> to set the capcity of the quadtree\n" );
         printf( "-no turns off all correctness checks and particle output\n");
         return 0;
     }
-    
+    //1 is the default capacity of the quadtree
+    int capacity = read_int( argc, argv, "-c", 1);
     int n = read_int( argc, argv, "-n", 1000 );
 
     char *savename = read_string( argc, argv, "-o", NULL );
@@ -41,18 +43,18 @@ int main( int argc, char **argv )
     //
     // initialize the quadtree
     //
+    
      double middle = 0.5 * get_size();
      Rectangle boundary = Rectangle(middle, middle, middle, middle);
-     Quadtree* tree = new Quadtree(boundary);
+     Quadtree* tree = new Quadtree(boundary, capacity);
 
     //
     // insert the particles into the quadtree
-    
+    //
     for (int i = 0; i < n; i++) {
         tree->insert(particles[i]);
     }
 
-    
     //
     //  simulate a number of time steps
     //
@@ -63,24 +65,22 @@ int main( int argc, char **argv )
 	navg = 0;
     davg = 0.0;
 	dmin = 1.0;
-        //  method 1
-        //  compute forces of one particle to all others
-        //  performing calculations as a N-body simulation with efficiency O(n^2/2)
-        for( int i = 0; i < n; i++ )
-        {
-            particles[i].ax = particles[i].ay = 0;
-        }
-        for( int i = 0; i < n; i++ )
-        {
-            //particles[i].ax = particles[i].ay = 0;
-            for (int j = i+1; j < n; j++){
-                apply_force( particles[j], particles[i],&dmin,&davg,&navg);
-                apply_force( particles[i], particles[j],&dmin,&davg,&navg);
-            }
+        //  method 1 compute forces of one particle to all others
+        //  performing calculations as a N-body simulation with Mesh analysis efficiency O(n^2/2)
+        // for( int i = 0; i < n; i++ )
+        // {
+        //     particles[i].ax = particles[i].ay = 0;
+        // }
+        // for( int i = 0; i < n; i++ )
+        // {
+        //     //particles[i].ax = particles[i].ay = 0;
+        //     for (int j = i+1; j < n; j++){
+        //         apply_force( particles[j], particles[i],&dmin,&davg,&navg);
+        //         apply_force( particles[i], particles[j],&dmin,&davg,&navg);
+        //     }
 				
-        }
-        //  method 2
-        //  compute forces of one particle to all others
+        // }
+        //  method 2 compute forces of one particle to all others
         //  performing calculations as a Barnes–Hut simulation with efficiency O(nlogn)
 
         
