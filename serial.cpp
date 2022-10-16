@@ -107,6 +107,7 @@ int main( int argc, char **argv )
                     // //if these centers are close enough, calculate the forces of the subquadtree on the particle
                      
                      //this is only worth doing when the width is less than cutoff distance 
+                     //instead of checking for a shared border, we should just check everything within a rectange of cutoff distance
                      if(subquad2->sharesABorder(subquad) || subquad->parent == subquad2->parent) {
                         for (int j = 0; j < subquad2->particles_count; j++) {
                             apply_force( *subquad->particles[i], *subquad2->particles[j],&dmin,&davg,&navg);
@@ -118,7 +119,7 @@ int main( int argc, char **argv )
                         double dx = subquad2->center_of_mass->x - subquad->center_of_mass->x;
                         double dy = subquad2->center_of_mass->y - subquad->center_of_mass->y;
                         double r2 = dx * dx + dy * dy;
-                        if(r2 > get_cutoff() * get_cutoff()) {
+                        if(r2/2 > get_cutoff() * get_cutoff()) {
                             for (int j = 0; j < subquad2->particles_count; j++) {
                                 apply_force( *subquad->particles[i], *subquad2->particles[j],&dmin,&davg,&navg);
                             }
