@@ -90,7 +90,8 @@ void init_particles( int n, particle_t *p )
 double getInteractionRange()
 {
     //this is dependent on the r2 if in apply_force
-    return cutoff*cutoff;
+    double interactionRange = cutoff;
+    return interactionRange;
 }
 
 //

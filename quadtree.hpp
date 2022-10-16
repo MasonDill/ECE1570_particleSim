@@ -20,11 +20,12 @@ class Quadtree {
         particle_t center_of_mass;
         Quadtree* parent;
         //defines the desired width of a quadtree section
-        unsigned int maximum_interaction_distance;
+        double maximum_interaction_distance;
+        unsigned int depth;
         //defines the particles in the quadtree section
         particle_t** particles;
 
-        Quadtree(Rectangle boundary, unsigned int capacity, unsigned int max_interaction_distance, Quadtree* parent);
+        Quadtree(Rectangle boundary, unsigned int capacity, double max_interaction_distance, unsigned int depth, Quadtree* parent);
         void insert(particle_t* particle);
         bool hasChildren();
         std::list <Quadtree*>* getLeaves(std::list <Quadtree*>* leaves);

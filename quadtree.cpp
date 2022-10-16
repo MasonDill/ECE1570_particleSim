@@ -17,8 +17,9 @@ Rectangle::Rectangle(double x, double y, double w, double h) {
     this->h = h;
 }
 
-Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, unsigned int maximum_interaction_distance, Quadtree* parent) {
+Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, double maximum_interaction_distance, unsigned int depth, Quadtree* parent) {
         this -> maximum_interaction_distance = maximum_interaction_distance;
+        this -> depth = depth;
         
         this->boundary = boundary;
         this->capacity = capacity;
@@ -71,10 +72,10 @@ void Quadtree::subdivide(){
     double se_x = x + w/2;
     double se_y = y - h/2;
     
-    this->northwest = new Quadtree(Rectangle(nw_x, nw_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this);
-    this->northeast = new Quadtree(Rectangle(ne_x, ne_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this);
-    this->southwest = new Quadtree(Rectangle(sw_x, sw_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this);
-    this->southeast = new Quadtree(Rectangle(se_x, se_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this);
+    this->northwest = new Quadtree(Rectangle(nw_x, nw_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this->depth+1, this);
+    this->northeast = new Quadtree(Rectangle(ne_x, ne_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this->depth+1, this);
+    this->southwest = new Quadtree(Rectangle(sw_x, sw_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this->depth+1, this);
+    this->southeast = new Quadtree(Rectangle(se_x, se_y, w/2, h/2), this->capacity, this->maximum_interaction_distance, this->depth+1, this);
 
     //place the particles in the correct section
     // for (int i = 0; i < this->particles_count; i++) {
@@ -95,7 +96,9 @@ void Quadtree::subdivide(){
     //         this->particles[i] = NULL;
     //     }
     // }
-    //reassert particles_count to full capacity to prevent future insertion
+    //assert particles_count to full capacity to prevent future insertion
+
+    //this can cause a tree with full capacity to have no particles, possible cause of nullptrexception if used in the wrong way
     this->particles_count = this->capacity;
 }
 
@@ -130,14 +133,18 @@ void Quadtree::insert(particle_t* particle){
         return;
     }
 
+    //this could be changed to check for children, as all parents will have full capacity from subdivide()
     //if there is space in the quadtree section, add it to the particles array
     if (this->particles_count < this->capacity){
         this->particles[this->particles_count] = particle;
         this->particles_count++;
-        this->center_of_mass.x = (this->center_of_mass.x + particle->x / this->particles_count);
-        this->center_of_mass.y = (this->center_of_mass.y + particle->y / this->particles_count);
+        //update center of mass, these calculations are not correct
+        this->center_of_mass.x = (this->center_of_mass.x / this->particles_count + particle->x / this->particles_count);
+        this->center_of_mass.y = (this->center_of_mass.y / this->particles_count + particle->y / this->particles_count);
         return;
     }
+
+    //this should never be reached, as all parents will have full capacity from subdivide() in this implementation
     //else there is no space in the quadtree section, subdivide it and add the particle to the correct section
     else {
         if (this->northwest == NULL && this->northeast == NULL && this->southwest == NULL && this->southeast == NULL){

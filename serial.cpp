@@ -25,8 +25,8 @@ int main( int argc, char **argv )
         return 0;
     }
     //16 is the default capacity of the quadtree
-    int capacity = read_int( argc, argv, "-c", 4);
     int n = read_int( argc, argv, "-n", 1000 );
+    int capacity = read_int( argc, argv, "-c", n);
 
     char *savename = read_string( argc, argv, "-o", NULL );
     char *sumname = read_string( argc, argv, "-s", NULL );
@@ -45,17 +45,21 @@ int main( int argc, char **argv )
     // initialize the quadtree
     //
 
-    double middle = 0.5 * get_size();
-    Rectangle boundary = Rectangle(middle, middle, middle, middle);
+    //double middle = 0.5 * get_size();
+    Rectangle boundary = Rectangle(get_size(), get_size(), get_size(), get_size());
 
     //
     //  simulate a number of time steps
     //
     double simulation_time = read_timer( );
-	Quadtree* tree = new Quadtree(boundary, capacity, getInteractionRange(), nullptr);
+
+    //create a quadtree where each section has a width of the interaction range -> every particle may be capable of interacting with every other particle in the section
+	double interactionRange =  getInteractionRange();
+    Quadtree* tree = new Quadtree(boundary, capacity, 100000000 * interactionRange, 0, nullptr);
     for (int i = 0; i < n; i++) {
         tree->insert(&particles[i]);
     }
+    std::list <Quadtree*>* leaves = tree->getLeaves(new std::list <Quadtree*>());
 
     for( int step = 0; step < NSTEPS; step++ )
     {
@@ -89,7 +93,6 @@ int main( int argc, char **argv )
             particles[i].ax = particles[i].ay = 0;
         }
 
-        std::list <Quadtree*>* leaves = tree->getLeaves(new std::list <Quadtree*>());
         for (std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it) {
             Quadtree* subquad = *it;
             //  for each particle in the subquadtree section,
@@ -100,26 +103,20 @@ int main( int argc, char **argv )
                     //apply_force( *subquad->particles[j], *subquad->particles[i],&dmin,&davg,&navg);
                 }
                 //calculate the forces of all other subquadtrees to this particle
-                for (std::list<Quadtree*>::iterator it2 = leaves->begin(); it2 != leaves->end(); ++it2) {
-                    Quadtree* subquad2 = *it2;
-                    if(subquad2 == subquad) continue;
-                    //if these subquads share the same parent, make them interact normally
-                    if(subquad2->parent == subquad->parent){
-                        for (int j = 0; j < subquad2->particles_count; j++) {
-                            apply_force( *subquad->particles[i], *subquad2->particles[j],&dmin,&davg,&navg);
-                        }
-                    }
-                    //else just interact with the center of mass
-                    else{
-                        apply_force( *subquad->particles[i], subquad2->center_of_mass,&dmin,&davg,&navg);
-                    }
-                    }
                 }
             }
 
         //  move particles
         for( int i = 0; i < n; i++ ) 
-            move( particles[i] );		
+            move( particles[i] );
+        
+        free(tree);
+        free(leaves);
+        tree = new Quadtree(boundary, capacity, 64 * interactionRange, 0, nullptr);
+        for (int i = 0; i < n; i++) {
+            tree->insert(&particles[i]);
+        }
+        leaves = tree->getLeaves(new std::list <Quadtree*>());
 
         if( find_option( argc, argv, "-no" ) == -1 )
         {
