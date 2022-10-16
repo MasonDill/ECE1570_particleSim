@@ -123,7 +123,7 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
     //
     //  very simple short-range repulsive force
     //  we should multiply this mass by the number of particles in the quadtree section
-    double coef = ( 1 - cutoff / r ) / r2 / neighbor.particle_mass;
+    double coef = ( 1 - cutoff / r ) / r2 / (mass);
     particle.ax += coef * dx;
     particle.ay += coef * dy;
 }

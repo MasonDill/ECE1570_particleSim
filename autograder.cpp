@@ -120,7 +120,7 @@ int main( int argc, char **argv )
 	  printf("Average weak scaling efficiency: %7.2lf \n\n",ws_avg);
     }
 
-    fclose( fread );
+    if(fread != NULL) fclose( fread );
     
     return 0;
 }

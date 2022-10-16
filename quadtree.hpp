@@ -17,7 +17,7 @@ class Quadtree {
         //defines the number of particles in the quadtree section
         unsigned int particles_count;
         //models the quadtree section as a single particle at the midpoint of the section
-        particle_t center_of_mass;
+        particle_t* center_of_mass;
         Quadtree* parent;
         //defines the particles in the quadtree section
         particle_t** particles;
@@ -27,6 +27,7 @@ class Quadtree {
         void insert(particle_t* particle);
         bool hasChildren();
         std::list <Quadtree*>* getLeaves(std::list <Quadtree*>* leaves);
+        bool sharesABorder(Quadtree* other);
 
     private:
         //defines the four sections of the quadtree

@@ -25,8 +25,8 @@ int main( int argc, char **argv )
         return 0;
     }
     //16 is the default capacity of the quadtree
-    int capacity = read_int( argc, argv, "-c", 8);
     int n = read_int( argc, argv, "-n", 1000 );
+    int capacity = read_int( argc, argv, "-c", n / log10(n));
 
     char *savename = read_string( argc, argv, "-o", NULL );
     char *sumname = read_string( argc, argv, "-s", NULL );
@@ -52,6 +52,7 @@ int main( int argc, char **argv )
     //  simulate a number of time steps
     //
     double simulation_time = read_timer( );
+    
     for( int step = 0; step < NSTEPS; step++ )
     {
     //create the quadtree every time step to account for movement of particles
@@ -94,27 +95,36 @@ int main( int argc, char **argv )
             //  for each particle in the subquadtree section,
             for (int i = 0; i < subquad->particles_count; i++) {
                 //calculate the forces of the particles on each other in the subquadtree
-                for (int j = i+1; j < subquad->particles_count; j++) {
+                for (int j = 0; j < subquad->particles_count; j++) {
                     apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
-                    apply_force( *subquad->particles[j], *subquad->particles[i],&dmin,&davg,&navg);
                 }
                 //calculate the forces of all other subquadtrees to this particle
                 for (std::list<Quadtree*>::iterator it2 = leaves->begin(); it2 != leaves->end(); ++it2) {
                     Quadtree* subquad2 = *it2;
+                    if(subquad2->center_of_mass == nullptr) continue;
                     if(subquad2 == subquad) continue;
-                    //if these centers are close enough, calculate the forces of the subquadtree on the particle
-                    double dx = subquad2->center_of_mass.x - subquad->particles[i]->x;
-                    double dy = subquad2->center_of_mass.y - subquad->particles[i]->y;
-                    double r2 = dx * dx + dy * dy;
-                    if(r2 > get_cutoff() * get_cutoff()) {
+
+                    // //if these centers are close enough, calculate the forces of the subquadtree on the particle
+                     
+                     //this is only worth doing when the width is less than cutoff distance 
+                     if(subquad2->sharesABorder(subquad) || subquad->parent == subquad2->parent) {
                         for (int j = 0; j < subquad2->particles_count; j++) {
                             apply_force( *subquad->particles[i], *subquad2->particles[j],&dmin,&davg,&navg);
                         }
-                    }
-                    //else just interact with the center of mass
+                     }
+                
+                    // else just interact with the center of mass
                     else{
-                        apply_force( *subquad->particles[i], subquad2->center_of_mass,&dmin,&davg,&navg);
+                        double dx = subquad2->center_of_mass->x - subquad->center_of_mass->x;
+                        double dy = subquad2->center_of_mass->y - subquad->center_of_mass->y;
+                        double r2 = dx * dx + dy * dy;
+                        if(r2 > get_cutoff() * get_cutoff()) {
+                            for (int j = 0; j < subquad2->particles_count; j++) {
+                                apply_force( *subquad->particles[i], *subquad2->particles[j],&dmin,&davg,&navg);
+                            }
+                        }
                     }
+                    apply_force( *subquad->particles[i], *subquad2->center_of_mass,&dmin,&davg,&navg);
                     }
                 }
             }

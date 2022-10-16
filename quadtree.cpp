@@ -28,12 +28,8 @@ Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, Quadtree* parent) 
         this->northeast = NULL;
         this->southwest = NULL;
         this->southeast = NULL;
-
-        this->center_of_mass.x = boundary.x;
-        this->center_of_mass.y = boundary.y;
-        this->center_of_mass.particle_mass = mass;
-
         this->parent = parent;
+        this->center_of_mass = nullptr;
 }
 
 std::list <Quadtree*>* Quadtree::getLeaves(std::list <Quadtree*>* leaves) {
@@ -88,6 +84,8 @@ void Quadtree::subdivide(){
             this->southeast->insert(this->particles[i]);
             this->particles[i] = NULL;
         }
+        else
+            printf("Error: particle not in any section");
     }
     //reassert particles_count to full capacity to prevent future insertion
     this->particles_count = this->capacity;
@@ -102,18 +100,60 @@ bool Quadtree::hasChildren() {
     }
 }
 
+bool Quadtree::sharesABorder(Quadtree* other) {
+    if (this->boundary.x == other->boundary.x && this->boundary.y == other->boundary.y) {
+        return false;
+    }
+    else if (this->boundary.x == other->boundary.x) {
+        if (this->boundary.y + this->boundary.h/2 == other->boundary.y - other->boundary.h/2) {
+            return true;
+        }
+        else if (this->boundary.y - this->boundary.h/2 == other->boundary.y + other->boundary.h/2) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    else if (this->boundary.y == other->boundary.y) {
+        if (this->boundary.x + this->boundary.w/2 == other->boundary.x - other->boundary.w/2) {
+            return true;
+        }
+        else if (this->boundary.x - this->boundary.w/2 == other->boundary.x + other->boundary.w/2) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    else {
+        return false;
+    }
+}
+
 void Quadtree::calculateCenterOfMass(){
-    this->center_of_mass.x = 0;
-    this->center_of_mass.y = 0;
-    this->center_of_mass.particle_mass = mass * this->particles_count;
+    if(this->center_of_mass != nullptr) {
+        delete this->center_of_mass;
+    }
+    this->center_of_mass = new particle_t;
+    this->center_of_mass->x = 0;
+    this->center_of_mass->y = 0;
+    this->center_of_mass->vx = 0;
+    this->center_of_mass->vy = 0;
+    this->center_of_mass->particle_mass = mass * this->particles_count;
 
     for (int i = 0; i < this->particles_count; i++) {
         //since everything has the same mass, no need to weight the position by mass
-        this->center_of_mass.x += this->particles[i]->x;
-        this->center_of_mass.y += this->particles[i]->y;
+        this->center_of_mass->x += this->particles[i]->x;
+        this->center_of_mass->y += this->particles[i]->y;
+        this->center_of_mass->vx += this->particles[i]->vx;
+        this->center_of_mass->vy += this->particles[i]->vy;
     }
-    this->center_of_mass.x /= this->particles_count;
-    this->center_of_mass.y /= this->particles_count;
+    this->center_of_mass->x /= this->particles_count;
+    this->center_of_mass->y /= this->particles_count;
+    this->center_of_mass->vx /= this->particles_count;
+    this->center_of_mass->vy /= this->particles_count;
+
 }
 
 bool Quadtree::inboundary(particle_t* particle){
