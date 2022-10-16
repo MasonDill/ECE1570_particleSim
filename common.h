@@ -19,6 +19,7 @@ double read_timer( );
 //  simulation routines
 //
 void set_size( int n );
+double get_cutoff();
 double get_size( );
 void init_particles( int n, particle_t *p );
 bool withinInteractionRange(double r2);

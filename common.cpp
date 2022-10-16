@@ -15,7 +15,7 @@ double size;
 //
 #define density 0.0005
 #define mass    0.01
-#define cutoff  0.00005
+#define cutoff  0.01
 #define min_r   (cutoff/100)
 #define dt      0.0005
 
@@ -41,6 +41,8 @@ double read_timer( )
 //
 void set_size( int n )
 {
+    //size^2 = area
+    //density = area/n
     size = sqrt( density * n );
 }
 
@@ -83,6 +85,8 @@ void init_particles( int n, particle_t *p )
         //
         p[i].vx = drand48()*2-1;
         p[i].vy = drand48()*2-1;
+
+        p[i].particle_mass = mass;
     }
     free( shuffle );
 }
@@ -91,11 +95,6 @@ void init_particles( int n, particle_t *p )
 //
 // check if two particles are within cutoff distance
 //
-bool withinInteractionRange(double r2) {
-    if( r2 > cutoff*cutoff )
-        return false;
-    return true;
-}
 
 //
 //  interact two particles
@@ -106,9 +105,9 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
     double dx = neighbor.x - particle.x;
     double dy = neighbor.y - particle.y;
     double r2 = dx * dx + dy * dy;
-    if(!withinInteractionRange(r2))
+    if( r2 > cutoff*cutoff )
         return;
-	if (r2 != 0)
+    if (r2 != 0)
         {
 	   if (r2/(cutoff*cutoff) < *dmin * (*dmin))
 	      *dmin = sqrt(r2)/cutoff;
@@ -123,10 +122,15 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
 	
     //
     //  very simple short-range repulsive force
-    //
-    double coef = ( 1 - cutoff / r ) / r2 / mass;
+    //  we should multiply this mass by the number of particles in the quadtree section
+    double coef = ( 1 - cutoff / r ) / r2 / neighbor.particle_mass;
     particle.ax += coef * dx;
     particle.ay += coef * dy;
+}
+
+double get_cutoff()
+{
+    return cutoff;
 }
 
 //

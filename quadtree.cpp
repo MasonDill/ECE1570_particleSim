@@ -1,5 +1,6 @@
 #include "quadtree.hpp"
 #include <stdio.h>
+#define mass 0.01
 //
 // particle data structure
 //
@@ -30,6 +31,7 @@ Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, Quadtree* parent) 
 
         this->center_of_mass.x = boundary.x;
         this->center_of_mass.y = boundary.y;
+        this->center_of_mass.particle_mass = mass;
 
         this->parent = parent;
 }
@@ -100,6 +102,20 @@ bool Quadtree::hasChildren() {
     }
 }
 
+void Quadtree::calculateCenterOfMass(){
+    this->center_of_mass.x = 0;
+    this->center_of_mass.y = 0;
+    this->center_of_mass.particle_mass = mass * this->particles_count;
+
+    for (int i = 0; i < this->particles_count; i++) {
+        //since everything has the same mass, no need to weight the position by mass
+        this->center_of_mass.x += this->particles[i]->x;
+        this->center_of_mass.y += this->particles[i]->y;
+    }
+    this->center_of_mass.x /= this->particles_count;
+    this->center_of_mass.y /= this->particles_count;
+}
+
 bool Quadtree::inboundary(particle_t* particle){
     double x = particle->x;
     double y = particle->y;
@@ -126,8 +142,7 @@ void Quadtree::insert(particle_t* particle){
     if (this->particles_count < this->capacity){
         this->particles[this->particles_count] = particle;
         this->particles_count++;
-        this->center_of_mass.x = (this->center_of_mass.x + particle->x / this->particles_count);
-        this->center_of_mass.y = (this->center_of_mass.y + particle->y / this->particles_count);
+        this->calculateCenterOfMass();
         return;
     }
     //else there is no space in the quadtree section, subdivide it and add the particle to the correct section

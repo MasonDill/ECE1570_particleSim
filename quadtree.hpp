@@ -21,7 +21,8 @@ class Quadtree {
         Quadtree* parent;
         //defines the particles in the quadtree section
         particle_t** particles;
-
+        
+        void calculateCenterOfMass();
         Quadtree(Rectangle boundary, unsigned int capacity, Quadtree* parent);
         void insert(particle_t* particle);
         bool hasChildren();
