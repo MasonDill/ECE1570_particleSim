@@ -46,7 +46,7 @@ int main( int argc, char **argv )
     //
 
     double middle = get_size() * 0.5;
-    Rectangle boundary = Rectangle(middle, middle, middle, middle);
+    Rectangle boundary = Rectangle(middle, middle, middle);
 
     //
     //  simulate a number of time steps
@@ -58,7 +58,8 @@ int main( int argc, char **argv )
     //create the quadtree every time step to account for movement of particles
     Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
     for (int i = 0; i < n; i++) {
-        tree->insert(&particles[i]);
+        if (!tree->insert(&particles[i]))
+            printf("Error: particle could not be inserted into the quadtree");
     }
 
 	navg = 0;
@@ -93,38 +94,24 @@ int main( int argc, char **argv )
         for (std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it) {
             Quadtree* subquad = *it;
             //  for each particle in the subquadtree section,
-            for (int i = 0; i < subquad->particles_count; i++) {
+            for (int i = 0; i < subquad->particles.size(); i++) {
+
                 //calculate the forces of the particles on each other in the subquadtree
-                for (int j = 0; j < subquad->particles_count; j++) {
-                    apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
+                for (int j = 0; j < subquad->particles.size(); j++) {
+                    if(i != j)
+                        apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
                 }
+
                 //calculate the forces of all other subquadtrees to this particle
                 for (std::list<Quadtree*>::iterator it2 = leaves->begin(); it2 != leaves->end(); ++it2) {
                     Quadtree* subquad2 = *it2;
                     if(subquad2->center_of_mass == nullptr) continue;
                     if(subquad2 == subquad) continue;
-
-                    // //if these centers are close enough, calculate the forces of the subquadtree on the particle
-                     
-                     //this is only worth doing when the width is less than cutoff distance 
-                     //instead of checking for a shared border, we should just check everything within a rectange of cutoff distance
-                     if(subquad2->sharesABorder(subquad) || subquad->parent == subquad2->parent) {
-                        for (int j = 0; j < subquad2->particles_count; j++) {
-                            apply_force( *subquad->particles[i], *subquad2->particles[j],&dmin,&davg,&navg);
-                        }
+                     if(withinInteractionRange(*subquad->particles[i], *subquad2->center_of_mass)){
+                         for(int j = 0; j < subquad2->particles.size(); j++){
+                             apply_force( *subquad->particles[i], *subquad2->particles[j],&dmin,&davg,&navg);
+                         }
                      }
-                
-                    // else just interact with the center of mass
-                    else{
-                        double dx = subquad2->center_of_mass->x - subquad->center_of_mass->x;
-                        double dy = subquad2->center_of_mass->y - subquad->center_of_mass->y;
-                        double r2 = dx * dx + dy * dy;
-                        if(r2/2 > get_cutoff() * get_cutoff()) {
-                            for (int j = 0; j < subquad2->particles_count; j++) {
-                                apply_force( *subquad->particles[i], *subquad2->particles[j],&dmin,&davg,&navg);
-                            }
-                        }
-                    }
                     apply_force( *subquad->particles[i], *subquad2->center_of_mass,&dmin,&davg,&navg);
                     }
                 }

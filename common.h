@@ -22,7 +22,7 @@ void set_size( int n );
 double get_cutoff();
 double get_size( );
 void init_particles( int n, particle_t *p );
-bool withinInteractionRange(double r2);
+bool withinInteractionRange(particle_t &particle, particle_t &neighbor);
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg);
 void move( particle_t &p );
 
