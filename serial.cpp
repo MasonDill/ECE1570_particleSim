@@ -26,7 +26,7 @@ int main( int argc, char **argv )
     }
     //16 is the default capacity of the quadtree
     int n = read_int( argc, argv, "-n", 1000 );
-    int capacity = read_int( argc, argv, "-c", n / log10(n));
+    int capacity = read_int( argc, argv, "-c", 100);
 
     char *savename = read_string( argc, argv, "-o", NULL );
     char *sumname = read_string( argc, argv, "-s", NULL );
@@ -55,36 +55,17 @@ int main( int argc, char **argv )
     
     for( int step = 0; step < NSTEPS; step++ )
     {
-    //create the quadtree every time step to account for movement of particles
-    Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
-    for (int i = 0; i < n; i++) {
-        if (!tree->insert(&particles[i]))
-            printf("Error: particle could not be inserted into the quadtree");
-    }
-
 	navg = 0;
     davg = 0.0;
-	dmin = 1.0;
+	dmin = 1.0; //dmin = 1.0 -> r2 always > cuttoff^2, no particles are interacting 
 
-        //  method 1 compute forces of one particle to all others
-        //  performing calculations as a N-body simulation with Mesh analysis efficiency O(n^2/2)
-        // for( int i = 0; i < n; i++ )
-        // {
-        //     particles[i].ax = particles[i].ay = 0;
-        // }
-        // for( int i = 0; i < n; i++ )
-        // {
-        //     //particles[i].ax = particles[i].ay = 0;
-        //     for (int j = i+1; j < n; j++){
-        //         apply_force( particles[j], particles[i],&dmin,&davg,&navg);
-        //         apply_force( particles[i], particles[j],&dmin,&davg,&navg);
-        //     }
-    
-        // }
+        //create the quadtree every time step to account for movement of particles
+        Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
+        for (int i = 0; i < n; i++) {
+            if (!tree->insert(&particles[i]))
+                printf("Error: particle could not be inserted into the quadtree");
+        }
 
-
-        //  method 2 compute forces of one particle to all others
-        //  performing calculations as a Barnes–Hut simulation with efficiency O(nlogn)
         for( int i = 0; i < n; i++ )
         {
             particles[i].ax = particles[i].ay = 0;
@@ -95,27 +76,24 @@ int main( int argc, char **argv )
             Quadtree* subquad = *it;
             //  for each particle in the subquadtree section,
             for (int i = 0; i < subquad->particles.size(); i++) {
-
                 //calculate the forces of the particles on each other in the subquadtree
                 for (int j = 0; j < subquad->particles.size(); j++) {
                     if(i != j)
                         apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
                 }
-
-                //calculate the forces of all other subquadtrees to this particle
-                for (std::list<Quadtree*>::iterator it2 = leaves->begin(); it2 != leaves->end(); ++it2) {
-                    Quadtree* subquad2 = *it2;
-                    if(subquad2->center_of_mass == nullptr) continue;
-                    if(subquad2 == subquad) continue;
-                     if(withinInteractionRange(*subquad->particles[i], *subquad2->center_of_mass)){
-                         for(int j = 0; j < subquad2->particles.size(); j++){
-                             apply_force( *subquad->particles[i], *subquad2->particles[j],&dmin,&davg,&navg);
-                         }
-                     }
-                    apply_force( *subquad->particles[i], *subquad2->center_of_mass,&dmin,&davg,&navg);
+            }
+            for(std::list<Quadtree*>::iterator it2 = leaves->begin(); it2 != leaves->end(); ++it2) {
+                Quadtree* quad2 = *it2;
+                //  for each particle in the subquadtree section,
+                for (int i = 0; i < subquad->particles.size(); i++) {
+                    //calculate the forces of the particles on each other in the subquadtree
+                    for (int j = 0; j < quad2->particles.size(); j++) {
+                        apply_force( *subquad->particles[i], *quad2->particles[j],&dmin,&davg,&navg);
                     }
                 }
             }
+        }
+
 
         //  move particles
         for( int i = 0; i < n; i++ ) 

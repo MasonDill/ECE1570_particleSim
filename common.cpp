@@ -116,8 +116,10 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
 {
     double dx = neighbor.x - particle.x;
     double dy = neighbor.y - particle.y;
+    
+    //C^2 = A^2 + B^2
     double r2 = dx * dx + dy * dy;
-    if( r2 > cutoff*cutoff )
+    if( r2 > cutoff*cutoff)
         return;
     if (r2 != 0)
         {
@@ -127,12 +129,13 @@ void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, dou
            (*navg) ++;
         }
     r2 = fmax( r2, min_r*min_r );
+    //euclidean distance between two particles
     double r = sqrt( r2 );
  
     //
     //  very simple short-range repulsive force
     //  we should multiply this mass by the number of particles in the quadtree section
-    double coef = ( 1 - cutoff / r ) / r2 /  (mass);
+    double coef = ( 1 - cutoff / r ) / r2 / mass;
     particle.ax += coef * dx;
     particle.ay += coef * dy;   
 }

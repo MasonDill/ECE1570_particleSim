@@ -64,28 +64,62 @@ void Quadtree::subdivide(){
     this->southeast = new Quadtree(Rectangle(se_x, se_y, w/2), this->capacity, this);
 
     //move the particles in the correct subsection, so all particles are always in the leaves
-    for (int i = 0; i < this->particles.size(); i++) {
+    for (int i = 0; i < this->particles.size(); i++) { //northwest has priority
         if (this->northwest->inboundary(this->particles[i])) {
             this->northwest->insert(this->particles[i]);
-            this->particles[i] = nullptr;
+            //this->particles[i] = nullptr;
         }
         else if (this->northeast->inboundary(this->particles[i])) {
             this->northeast->insert(this->particles[i]);
-            this->particles[i] = nullptr;
+            //this->particles[i] = nullptr;
         }
         else if (this->southwest->inboundary(this->particles[i])) {
             this->southwest->insert(this->particles[i]);
-            this->particles[i] = nullptr;
+            //this->particles[i] = nullptr;
         }
         else if (this->southeast->inboundary(this->particles[i])) {
             this->southeast->insert(this->particles[i]);
-            this->particles[i] = nullptr;
+            //this->particles[i] = nullptr;
         }
-        else
+        else{
             printf("Error: particle not in any section");
+            this->northwest->inboundary(this->particles[i]);
+            this->northeast->inboundary(this->particles[i]);
+            this->southwest->inboundary(this->particles[i]);
+            this->southeast->inboundary(this->particles[i]);
+        }
+            
     }
     //reassert particles_count to full capacity to prevent future insertion
     //this->particles.clear();
+}
+
+particle_t* Quadtree::getCenterOfMass() {
+    double x = 0;
+    double y = 0;
+    double m = 0;
+    if(this->hasChildren()){
+        particle_t nw = *this->northwest->getCenterOfMass();
+        particle_t ne = *this->northeast->getCenterOfMass();
+        particle_t sw = *this->southwest->getCenterOfMass();
+        particle_t se = *this->southeast->getCenterOfMass();
+
+        m = nw.particle_mass + ne.particle_mass + sw.particle_mass + se.particle_mass;
+        x = (nw.x * nw.particle_mass + ne.x * ne.particle_mass + sw.x * sw.particle_mass + se.x * se.particle_mass) / (m);
+        y = (nw.y * nw.particle_mass + ne.y * ne.particle_mass + sw.y * sw.particle_mass + se.y * se.particle_mass) / (m);
+    
+        this->center_of_mass = new particle_t;
+        this->center_of_mass->x = x;
+        this->center_of_mass->y = y;
+        this->center_of_mass->particle_mass = m;
+    }
+    if (this->center_of_mass == nullptr) {
+        this->center_of_mass = new particle_t;
+        this->center_of_mass->x = 0;
+        this->center_of_mass->y = 0;
+        this->center_of_mass->particle_mass = 0;
+    }
+    return this->center_of_mass;
 }
 
 bool Quadtree::hasChildren() {
@@ -98,6 +132,17 @@ bool Quadtree::hasChildren() {
 }
 
 bool Quadtree::sharesABorder(Quadtree* other) {
+    
+    if (this->boundary.x == other->boundary.x) {
+        if (this->boundary.y - this->boundary.w == other->boundary.y + other->boundary.w || this->boundary.y + this->boundary.w == other->boundary.y - other->boundary.w) {
+            return true;
+        }
+    }
+    else if (this->boundary.y == other->boundary.y) {
+        if (this->boundary.x - this->boundary.w == other->boundary.x + other->boundary.w || this->boundary.x + this->boundary.w == other->boundary.x - other->boundary.w) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -136,6 +181,8 @@ bool Quadtree::inboundary(particle_t* particle){
     double x_max = this->boundary.x + w;
     double y_min = this->boundary.y - h;
     double y_max = this->boundary.y + h;
+
+    //some float math erros can cause the particle to be outside the boundary of all 4 quadrants when its near the border of two quadrants
     if (x >= x_min && x <= x_max && y >= y_min && y <= y_max) {
         return true;
     }

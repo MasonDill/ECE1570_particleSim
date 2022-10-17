@@ -29,6 +29,7 @@ class Quadtree {
         bool insert(particle_t* particle);
         bool hasChildren();
         std::list <Quadtree*>* getLeaves(std::list <Quadtree*>* leaves);
+        particle_t* getCenterOfMass();
         bool sharesABorder(Quadtree* other);
 
     private:
