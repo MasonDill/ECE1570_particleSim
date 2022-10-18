@@ -26,7 +26,7 @@ int main( int argc, char **argv )
     }
     //16 is the default capacity of the quadtree
     int n = read_int( argc, argv, "-n", 1000 );
-    int capacity = read_int( argc, argv, "-c", n/10);
+    int capacity = read_int( argc, argv, "-c", 50);
 
     char *savename = read_string( argc, argv, "-o", NULL );
     char *sumname = read_string( argc, argv, "-s", NULL );
