@@ -53,17 +53,18 @@ int main( int argc, char **argv )
     //
     double simulation_time = read_timer( );
 
-    Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
-    for (int i = 0; i < n; i++) {
-        if (!tree->insert(&particles[i]))
-            printf("Error: particle could not be inserted into the quadtree");
-    }
+    
     
     for( int step = 0; step < NSTEPS; step++ )
     {
 	navg = 0;
     davg = 0.0;
 	dmin = 1.0; //dmin = 1.0 -> r2 always > cuttoff^2, no particles are interacting 
+
+    Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
+    for (int i = 0; i < n; i++) {
+        tree->insert(&particles[i]);
+    }
 
         for( int i = 0; i < n; i++ )
         {
@@ -86,20 +87,25 @@ int main( int argc, char **argv )
 
 
         //  move particles
-        for(std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it){
-            Quadtree* subquad = *it;
-            for (int i = 0; i < subquad->particles.size(); i++) {
-                move( *subquad->particles[i] );
-                 //check if the particle moves out of a boundry, if so, remove it then reinsert it	
-                if(!subquad->inboundary(subquad->particles[i])){
-                    particle_t* p = subquad->particles[i];
-                    subquad->particles.erase(subquad->particles.begin() + i);
-                    subquad->calculateCenterOfMass();
-                    tree->insert(p);
-                }
-            }
-        }
+        // for(std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it){
+        //     Quadtree* subquad = *it;
+        //     for (int i = 0; i < subquad->particles.size(); i++) {
+        //         move( *subquad->particles[i] );
+        //          //check if the particle moves out of a boundry, if so, remove it then reinsert it	
+        //         if(!subquad->inboundary(subquad->particles[i])){
+        //             particle_t* p = subquad->particles[i];
+        //             p->ax = p->ay = 0;
+        //             subquad->particles.erase(subquad->particles.begin() + i);
+        //             subquad->calculateCenterOfMass();
+        //             tree->insert(p);
+        //         }
+        //     }
+        // }
             //move( particles[i] );
+        for( int i = 0; i < n; i++ )
+        {
+            move( particles[i] );
+        }
 
        	
 

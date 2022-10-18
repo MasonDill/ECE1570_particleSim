@@ -66,25 +66,13 @@ void Quadtree::subdivide(){
 
     //move the particles in the correct subsection, so all particles are always in the leaves
     for (int i = 0; i < this->particles.size(); i++) { //northwest has priority
-        if (this->northwest->inboundary(this->particles[i])) {
-            this->northwest->insert(this->particles[i]);
-            //this->particles[i] = nullptr;
-        }
-        else if (this->northeast->inboundary(this->particles[i])) {
-            this->northeast->insert(this->particles[i]);
-            //this->particles[i] = nullptr;
-        }
-        else if (this->southwest->inboundary(this->particles[i])) {
-            this->southwest->insert(this->particles[i]);
-            //this->particles[i] = nullptr;
-        }
-        else if (this->southeast->inboundary(this->particles[i])) {
-            this->southeast->insert(this->particles[i]);
-            //this->particles[i] = nullptr;
-        }
-        else{
-            printf("Error: particle not in any section");
-        }
+        this->northwest->insert(this->particles[i]);
+        
+        this->northeast->insert(this->particles[i]);
+        
+        this->southwest->insert(this->particles[i]);
+        
+        this->southeast->insert(this->particles[i]);
             
     }
     //reassert particles_count to full capacity to prevent future insertion
@@ -146,6 +134,10 @@ bool Quadtree::sharesABorder(Quadtree* other) {
 void Quadtree::calculateCenterOfMass(){
     if(this->center_of_mass != nullptr) {
         delete this->center_of_mass;
+    }
+    else if (this->particles.size() == 0){
+        this->center_of_mass = nullptr;
+        return;
     }
     this->center_of_mass = new particle_t;
     this->center_of_mass->x = 0;
