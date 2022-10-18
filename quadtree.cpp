@@ -1,6 +1,7 @@
 #include "quadtree.hpp"
 #include <stdio.h>
 #define mass 0.01
+#define cuttoff 0.01
 //
 // particle data structure
 //
@@ -83,10 +84,6 @@ void Quadtree::subdivide(){
         }
         else{
             printf("Error: particle not in any section");
-            this->northwest->inboundary(this->particles[i]);
-            this->northeast->inboundary(this->particles[i]);
-            this->southwest->inboundary(this->particles[i]);
-            this->southeast->inboundary(this->particles[i]);
         }
             
     }
@@ -177,10 +174,10 @@ bool Quadtree::inboundary(particle_t* particle){
 
     double w = this->boundary.w;
     double h = this->boundary.w;
-    double x_min = this->boundary.x - w;
-    double x_max = this->boundary.x + w;
-    double y_min = this->boundary.y - h;
-    double y_max = this->boundary.y + h;
+    double x_min = this->boundary.x - w - cuttoff;
+    double x_max = this->boundary.x + w + cuttoff;
+    double y_min = this->boundary.y - h - cuttoff;
+    double y_max = this->boundary.y + h + cuttoff;
 
     //some float math erros can cause the particle to be outside the boundary of all 4 quadrants when its near the border of two quadrants
     if (x >= x_min && x <= x_max && y >= y_min && y <= y_max) {
@@ -216,14 +213,10 @@ bool Quadtree::insert(particle_t* particle){
         }
         
         //add the particle to the correct section
-        if (this->northwest->insert(particle))
-            return true;
-        else if (this->northeast->insert(particle))
-            return true;
-        else if (this->southwest->insert(particle))
-            return true;
-        else if (this->southeast->insert(particle))
-            return true;
+        this->northwest->insert(particle);
+        this->northeast->insert(particle);
+        this->southwest->insert(particle);
+        this->southeast->insert(particle);
     }
     return false;
 }   

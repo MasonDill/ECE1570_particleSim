@@ -26,7 +26,7 @@ int main( int argc, char **argv )
     }
     //16 is the default capacity of the quadtree
     int n = read_int( argc, argv, "-n", 1000 );
-    int capacity = read_int( argc, argv, "-c", n/log10(n));
+    int capacity = read_int( argc, argv, "-c", n/10);
 
     char *savename = read_string( argc, argv, "-o", NULL );
     char *sumname = read_string( argc, argv, "-s", NULL );
@@ -52,19 +52,18 @@ int main( int argc, char **argv )
     //  simulate a number of time steps
     //
     double simulation_time = read_timer( );
+
+    Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
+    for (int i = 0; i < n; i++) {
+        if (!tree->insert(&particles[i]))
+            printf("Error: particle could not be inserted into the quadtree");
+    }
     
     for( int step = 0; step < NSTEPS; step++ )
     {
 	navg = 0;
     davg = 0.0;
 	dmin = 1.0; //dmin = 1.0 -> r2 always > cuttoff^2, no particles are interacting 
-
-        //create the quadtree every time step to account for movement of particles
-        Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
-        for (int i = 0; i < n; i++) {
-            if (!tree->insert(&particles[i]))
-                printf("Error: particle could not be inserted into the quadtree");
-        }
 
         for( int i = 0; i < n; i++ )
         {
@@ -81,36 +80,28 @@ int main( int argc, char **argv )
                     if(i != j)
                         apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
                 }
-
-                for(std::list<Quadtree*>::iterator it2 = leaves->begin(); it2 != leaves->end(); ++it2) {
-                Quadtree* quad2 = *it2;
-                if(subquad == quad2)
-                    continue;
-                //  for each particle in the subquadtree section,
-                // for (int i = 0; i < subquad->particles.size(); i++) {
-                //     //calculate the forces of the particles on each other in the subquadtree
-                //     for (int j = 0; j < quad2->particles.size(); j++) {
-                //         apply_force( *subquad->particles[i], *quad2->particles[j],&dmin,&davg,&navg);
-                //     }
-                // }
-                    if(subquad->parent == quad2->parent){
-                        for (int j = 0; j < quad2->particles.size(); j++) {
-                            apply_force( *subquad->particles[i], *quad2->particles[j],&dmin,&davg,&navg);
-                        }
-                    }
-                        
-                    apply_force( *subquad->particles[i], *quad2->center_of_mass,&dmin,&davg,&navg);
-                }
             }
             
         }
 
 
         //  move particles
-        for( int i = 0; i < n; i++ ) 
-            move( particles[i] );
+        for(std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it){
+            Quadtree* subquad = *it;
+            for (int i = 0; i < subquad->particles.size(); i++) {
+                move( *subquad->particles[i] );
+                 //check if the particle moves out of a boundry, if so, remove it then reinsert it	
+                if(!subquad->inboundary(subquad->particles[i])){
+                    particle_t* p = subquad->particles[i];
+                    subquad->particles.erase(subquad->particles.begin() + i);
+                    subquad->calculateCenterOfMass();
+                    tree->insert(p);
+                }
+            }
+        }
+            //move( particles[i] );
 
-        //check if the particle moves out of a boundry, if so, remove it then reinsert it		
+       	
 
         if( find_option( argc, argv, "-no" ) == -1 )
         {

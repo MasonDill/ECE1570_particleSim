@@ -31,6 +31,7 @@ class Quadtree {
         std::list <Quadtree*>* getLeaves(std::list <Quadtree*>* leaves);
         particle_t* getCenterOfMass();
         bool sharesABorder(Quadtree* other);
+        bool inboundary(particle_t* particle); 
 
     private:
         //defines the four sections of the quadtree
@@ -40,5 +41,5 @@ class Quadtree {
         Quadtree *southeast; 
 
         void subdivide();
-        bool inboundary(particle_t* particle); 
+        
 };
