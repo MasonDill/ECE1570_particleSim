@@ -8,7 +8,7 @@ CFLAGS =
 LIBS = -lm
 
 
-TARGETS = serial openmp autograder
+TARGETS = serial openmp autograder qtree_omp
 
 all:	$(TARGETS)
 
@@ -20,6 +20,8 @@ openmp: openmp.o common.o
 	$(CC) -o $@ $(OPENMP) openmp.o common.o -lm -g
 mpi: mpi.o common.o
 	$(MPCC) -o $@ $(MPILIBS) mpi.o common.o -lm -g
+qtree_omp: qtree_omp.o common.o quadtree.o
+	$(CC) -o $@ $(OPENMP) qtree_omp.o common.o quadtree.o -lm -g
 
 autograder.o: autograder.cpp common.h
 	$(CC) -c $(CFLAGS) autograder.cpp -g
@@ -33,6 +35,8 @@ common.o: common.cpp common.h
 	$(CC) -c $(CFLAGS) common.cpp -g
 quadtree.o: quadtree.cpp quadtree.hpp
 	$(CC) -c $(CFLAGS) quadtree.cpp -g
+qtree_omp.o: qtree_omp.cpp common.h
+	$(CC) -c $(OPENMP) $(CFLAGS) qtree_omp.cpp -g
 
 clean:
 	rm -f *.o $(TARGETS) *.stdout *.txt
