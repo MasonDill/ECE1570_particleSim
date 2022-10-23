@@ -56,8 +56,7 @@ int main( int argc, char **argv )
     double simulation_time = read_timer( );
 
     
-    #pragma omp parallel private(dmin) 
-    {
+
     for( int step = 0; step < NSTEPS; step++ )
     {
         // std::cout<<step<<std::endl;
@@ -72,7 +71,10 @@ int main( int argc, char **argv )
         }
         
 
-        numthreads = omp_get_num_threads();
+        
+        #pragma omp parallel private(dmin) 
+        {
+                    numthreads = omp_get_num_threads();
 
         #pragma omp for
         for( int i = 0; i < n; i++ )
@@ -82,13 +84,11 @@ int main( int argc, char **argv )
 
         std::vector <Quadtree*>* leaves = tree->getLeaves(new std::vector <Quadtree*>());
         
-        #pragma omp for collapse(2)
-        // for (std::vector<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it) {
+        #pragma omp for reduction (+:navg) reduction(+:davg)
         for (int qt_iter=0; qt_iter<leaves->size(); qt_iter++) {
             Quadtree* subquad = (*leaves)[qt_iter];
 
             //  for each particle in the subquadtree section,
-            // #pragma omp for reduction (+:navg) reduction(+:davg)
             for (int i = 0; i < subquad->particles.size(); i++) {
                 //calculate the forces of the particles on each other in the subquadtree
                 for (int j = 0; j < subquad->particles.size(); j++) {
@@ -121,6 +121,7 @@ int main( int argc, char **argv )
         {
             move( particles[i] );
         }
+        }
 
        	
 
@@ -143,7 +144,6 @@ int main( int argc, char **argv )
               save( fsave, n, particles );
         }
     }
-        }
 
     simulation_time = read_timer( ) - simulation_time;
     
