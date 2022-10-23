@@ -1,5 +1,5 @@
 #
-CC = g++
+CC = g++ -std=gnu++0x
 MPCC = mpic++
 #Note: this is the flag for gnu compilers. Change this to -openmp for Intel compilers
 OPENMP = -fopenmp
