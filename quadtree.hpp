@@ -28,7 +28,7 @@ class Quadtree {
         Quadtree(Rectangle boundary, unsigned int capacity, Quadtree* parent);
         bool insert(particle_t* particle);
         bool hasChildren();
-        std::list <Quadtree*>* getLeaves(std::list <Quadtree*>* leaves);
+        std::vector <Quadtree*>* getLeaves(std::vector <Quadtree*>* leaves);
         particle_t* getCenterOfMass();
         bool sharesABorder(Quadtree* other);
         bool inboundary(particle_t* particle); 
