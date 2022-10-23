@@ -71,9 +71,9 @@ int main( int argc, char **argv )
             particles[i].ax = particles[i].ay = 0;
         }
 
-        std::list <Quadtree*>* leaves = tree->getLeaves(new std::list <Quadtree*>());
-        for (std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it) {
-            Quadtree* subquad = *it;
+        std::vector <Quadtree*>* leaves = tree->getLeaves(new std::vector <Quadtree*>());
+        for (int qt_iter=0; qt_iter<leaves->size(); qt_iter++) {
+            Quadtree* subquad = (*leaves)[qt_iter];
             //  for each particle in the subquadtree section,
             for (int i = 0; i < subquad->particles.size(); i++) {
                 //calculate the forces of the particles on each other in the subquadtree

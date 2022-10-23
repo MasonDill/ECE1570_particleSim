@@ -96,7 +96,6 @@ int main( int argc, char **argv )
                         apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
                 }
             }
-            
         }
 
 

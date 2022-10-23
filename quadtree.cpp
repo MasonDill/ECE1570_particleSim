@@ -30,7 +30,7 @@ Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, Quadtree* parent) 
         this->center_of_mass = nullptr;
 }
 
-std::list <Quadtree*>* Quadtree::getLeaves(std::list <Quadtree*>* leaves) {
+std::vector <Quadtree*>* Quadtree::getLeaves(std::vector <Quadtree*>* leaves) {
     if(this->hasChildren()) {
         leaves = this->northwest->getLeaves(leaves);
         leaves = this->northeast->getLeaves(leaves);
