@@ -67,13 +67,9 @@ void Quadtree::subdivide(){
     //move the particles in the correct subsection, so all particles are always in the leaves
     for (int i = 0; i < this->particles.size(); i++) { //northwest has priority
         this->northwest->insert(this->particles[i]);
-        
         this->northeast->insert(this->particles[i]);
-        
         this->southwest->insert(this->particles[i]);
-        
         this->southeast->insert(this->particles[i]);
-            
     }
     //reassert particles_count to full capacity to prevent future insertion
     //this->particles.clear();
@@ -178,9 +174,9 @@ bool Quadtree::inboundary(particle_t* particle){
     return false;
 }
 
+
+//does not need to return a bool in the current implementation
 bool Quadtree::insert(particle_t* particle){
-    double C = 1.0;
-    double min_width = 0.0001 * C;
 
     //Do nothing if the particle is not in the boundary
     if (!this->inboundary(particle)) {
@@ -188,9 +184,8 @@ bool Quadtree::insert(particle_t* particle){
     }  
 
     //if there is space in the quadtree section, add it to the particles array
-        //TODO CHANGE THIS CONDITIOn
-    // if (this->particles.size() < this->capacity || this->boundary.w <= min_width){
-    if (this->particles.size() < this->capacity || this->boundary.w <= min_width){
+    // or if the quadtree section is smaller than the cutoff distance
+    if (this->particles.size() < this->capacity || 2 * this->boundary.w <= cuttoff){
         this->particles.push_back(particle);
         this->calculateCenterOfMass();
         return true;

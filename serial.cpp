@@ -26,7 +26,9 @@ int main( int argc, char **argv )
     }
     //16 is the default capacity of the quadtree
     int n = read_int( argc, argv, "-n", 1000 );
-    int capacity = read_int( argc, argv, "-c", 50);
+
+    //this capacity value allows us to load balance the quadtree
+    int capacity = read_int( argc, argv, "-c", log2(n) +10);
 
     char *savename = read_string( argc, argv, "-o", NULL );
     char *sumname = read_string( argc, argv, "-s", NULL );
@@ -45,7 +47,9 @@ int main( int argc, char **argv )
     // initialize the quadtree
     //
 
+    //midpoint of the box
     double middle = get_size() * 0.5;
+    //draw the box
     Rectangle boundary = Rectangle(middle, middle, middle);
 
     //
@@ -61,16 +65,19 @@ int main( int argc, char **argv )
     davg = 0.0;
 	dmin = 1.0; //dmin = 1.0 -> r2 always > cuttoff^2, no particles are interacting 
 
+    //create the quadtree every time step to account for movement of the particles
     Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
     for (int i = 0; i < n; i++) {
         tree->insert(&particles[i]);
     }
 
+        //set acceleration to 0
         for( int i = 0; i < n; i++ )
         {
             particles[i].ax = particles[i].ay = 0;
         }
 
+        //leaves hold all of the particles in the quadtree, and is the smallest box in the quadtree
         std::list <Quadtree*>* leaves = tree->getLeaves(new std::list <Quadtree*>());
         for (std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it) {
             Quadtree* subquad = *it;
@@ -81,12 +88,13 @@ int main( int argc, char **argv )
                     if(i != j)
                         apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
                 }
+                  if(!tree->inboundary(subquad->particles[i]))
+                    printf("particle %d is out of bounds", i);
             }
-            
         }
 
 
-        //  move particles
+        //  move particles without rebuilding tree
         // for(std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it){
         //     Quadtree* subquad = *it;
         //     for (int i = 0; i < subquad->particles.size(); i++) {
@@ -101,7 +109,8 @@ int main( int argc, char **argv )
         //         }
         //     }
         // }
-            //move( particles[i] );
+        
+        //move( particles[i] ); with tree rebuild
         for( int i = 0; i < n; i++ )
         {
             move( particles[i] );
