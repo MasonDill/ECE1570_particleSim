@@ -57,7 +57,7 @@ int main( int argc, char **argv )
 
     
 
-    #pragma omp parallel private(dmin) 
+    #pragma omp parallel private(dmin, davg, navg)
     {
         numthreads = omp_get_num_threads();
 
@@ -86,7 +86,7 @@ int main( int argc, char **argv )
 
         std::vector <Quadtree*>* leaves = tree->getLeaves(new std::vector <Quadtree*>());
         
-        #pragma omp for reduction (+:navg) reduction(+:davg) schedule(dynamic, 1)
+        #pragma omp for schedule(dynamic, 1)
         for (int qt_iter=0; qt_iter<leaves->size(); qt_iter++) {
             Quadtree* subquad = (*leaves)[qt_iter];
 
@@ -94,7 +94,6 @@ int main( int argc, char **argv )
             for (int i = 0; i < subquad->particles.size(); i++) {
                 //calculate the forces of the particles on each other in the subquadtree
                 for (int j = 0; j < subquad->particles.size(); j++) {
-                    #pragma omp critical
                     if(i != j)
                         apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
                 }
