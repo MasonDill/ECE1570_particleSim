@@ -47,7 +47,8 @@ int main( int argc, char **argv )
     {
         navg = 0;
         davg = 0.0;
-	dmin = 1.0;
+	    dmin = 1.0;
+        // printf("%d\n", step);
         //
         //  compute all forces
         //

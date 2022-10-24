@@ -8,5 +8,6 @@ typedef struct
   double vy;
   double ax;
   double ay;
+  double particle_mass;
 } particle_t;
 #endif
