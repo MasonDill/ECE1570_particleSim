@@ -17,15 +17,20 @@ Rectangle::Rectangle(double x, double y, double w) {
     this->w = w;
 }
 
-Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, Quadtree* parent) {
+Quadtree::Quadtree(Rectangle boundary, unsigned int capacity, double maximum_interaction_distance, unsigned int depth, Quadtree* parent) {
+        this -> maximum_interaction_distance = maximum_interaction_distance;
+        this -> depth = depth;
+        
         this->boundary = boundary;
         this->capacity = capacity;
         // this->particles = new particle_t*[capacity];
+
 
         this->northwest = NULL;
         this->northeast = NULL;
         this->southwest = NULL;
         this->southeast = NULL;
+
         this->parent = parent;
         this->center_of_mass = nullptr;
 }
@@ -59,6 +64,7 @@ void Quadtree::subdivide(){
     double se_x = x + w/2;
     double se_y = y - w/2;
     
+
     this->northwest = new Quadtree(Rectangle(nw_x, nw_y, w/2), this->capacity, this);
     this->northeast = new Quadtree(Rectangle(ne_x, ne_y, w/2), this->capacity, this);
     this->southwest = new Quadtree(Rectangle(sw_x, sw_y, w/2), this->capacity, this);
@@ -187,14 +193,19 @@ bool Quadtree::insert(particle_t* particle){
         return false;
     }  
 
+    //this could be changed to check for children, as all parents will have full capacity from subdivide()
     //if there is space in the quadtree section, add it to the particles array
+
         //TODO CHANGE THIS CONDITIOn
     // if (this->particles.size() < this->capacity || this->boundary.w <= min_width){
     if (this->particles.size() < this->capacity || this->boundary.w <= min_width){
         this->particles.push_back(particle);
         this->calculateCenterOfMass();
         return true;
+
     }
+
+    //this should never be reached, as all parents will have full capacity from subdivide() in this implementation
     //else there is no space in the quadtree section, subdivide it and add the particle to the correct section
     else {
         if (this->northwest == NULL && this->northeast == NULL && this->southwest == NULL && this->southeast == NULL){
@@ -212,3 +223,13 @@ bool Quadtree::insert(particle_t* particle){
     }
     return false;
 }   
+
+void Quadtree::remove(particle_t* particle){
+    for(int i = 0; i < this->particles_count; i++){
+        if(this->particles[i] == particle){
+            this->particles[i] = NULL;
+            this->particles_count--;
+            return;
+        }
+    }
+}

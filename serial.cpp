@@ -28,6 +28,7 @@ int main( int argc, char **argv )
     int n = read_int( argc, argv, "-n", 1000 );
     int capacity = read_int( argc, argv, "-c", 50);
 
+
     char *savename = read_string( argc, argv, "-o", NULL );
     char *sumname = read_string( argc, argv, "-s", NULL );
     
@@ -48,6 +49,7 @@ int main( int argc, char **argv )
     double middle = get_size() * 0.5;
     Rectangle boundary = Rectangle(middle, middle, middle);
 
+
     //
     //  simulate a number of time steps
     //
@@ -62,9 +64,15 @@ int main( int argc, char **argv )
 	dmin = 1.0; //dmin = 1.0 -> r2 always > cuttoff^2, no particles are interacting 
 
     Quadtree* tree = new Quadtree(boundary, capacity, nullptr);
+
     for (int i = 0; i < n; i++) {
         tree->insert(&particles[i]);
     }
+    std::list <Quadtree*>* leaves = tree->getLeaves(new std::list <Quadtree*>());
+
+    for( int step = 0; step < NSTEPS; step++ )
+    {
+    //create the quadtree every time step to account for movement of particles
 
         for( int i = 0; i < n; i++ )
         {
@@ -74,12 +82,14 @@ int main( int argc, char **argv )
         std::vector <Quadtree*>* leaves = tree->getLeaves(new std::vector <Quadtree*>());
         for (int qt_iter=0; qt_iter<leaves->size(); qt_iter++) {
             Quadtree* subquad = (*leaves)[qt_iter];
+
             //  for each particle in the subquadtree section,
             for (int i = 0; i < subquad->particles.size(); i++) {
                 //calculate the forces of the particles on each other in the subquadtree
                 for (int j = 0; j < subquad->particles.size(); j++) {
                     if(i != j)
                         apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
+
                 }
             }
             
@@ -107,7 +117,6 @@ int main( int argc, char **argv )
             move( particles[i] );
         }
 
-       	
 
         if( find_option( argc, argv, "-no" ) == -1 )
         {

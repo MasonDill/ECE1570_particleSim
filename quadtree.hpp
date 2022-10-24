@@ -19,8 +19,12 @@ class Quadtree {
         //models the quadtree section as a single particle at the midpoint of the section
         particle_t* center_of_mass;
         Quadtree* parent;
+        //defines the desired width of a quadtree section
+        double maximum_interaction_distance;
+        unsigned int depth;
         //defines the particles in the quadtree section
         //particle_t** particles;
+
 
         std::vector<particle_t*> particles; 
         
@@ -32,6 +36,7 @@ class Quadtree {
         particle_t* getCenterOfMass();
         bool sharesABorder(Quadtree* other);
         bool inboundary(particle_t* particle); 
+
 
     private:
         //defines the four sections of the quadtree

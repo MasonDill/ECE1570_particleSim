@@ -108,6 +108,7 @@ bool withinInteractionRange(particle_t &particle, particle_t &neighbor){
         return false;
     }
     return true;
+
 }
 //
 //  interact two particles
