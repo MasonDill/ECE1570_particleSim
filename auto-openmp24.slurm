@@ -1,7 +1,5 @@
 #!/bin/bash -l
 
-module purge
-module load gcc/5.4.0
 
 #SBATCH --time=00:20:00					# adjust the amount of time as necessary
 #SBATCH --job-name=serial
@@ -12,6 +10,10 @@ module load gcc/5.4.0
 #SBATCH --ntasks-per-node=24
 #SBATCH --cluster=smp
 #SBATCH --partition=smp
+
+
+module purge
+module load gcc/5.4.0
 
 rm openmp.txt
 srun -n 1 -c 1 ./serial -n 500 -no -s openmp.txt
