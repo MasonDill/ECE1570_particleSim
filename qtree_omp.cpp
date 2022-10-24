@@ -57,6 +57,10 @@ int main( int argc, char **argv )
 
     
 
+    #pragma omp parallel private(dmin) 
+    {
+        numthreads = omp_get_num_threads();
+
     for( int step = 0; step < NSTEPS; step++ )
     {
         // std::cout<<step<<std::endl;
@@ -72,9 +76,7 @@ int main( int argc, char **argv )
         
 
         
-        #pragma omp parallel private(dmin) 
-        {
-                    numthreads = omp_get_num_threads();
+
 
         #pragma omp for
         for( int i = 0; i < n; i++ )
@@ -84,7 +86,7 @@ int main( int argc, char **argv )
 
         std::vector <Quadtree*>* leaves = tree->getLeaves(new std::vector <Quadtree*>());
         
-        #pragma omp for reduction (+:navg) reduction(+:davg)
+        #pragma omp for reduction (+:navg) reduction(+:davg) schedule(dynamic, 1)
         for (int qt_iter=0; qt_iter<leaves->size(); qt_iter++) {
             Quadtree* subquad = (*leaves)[qt_iter];
 
@@ -92,6 +94,7 @@ int main( int argc, char **argv )
             for (int i = 0; i < subquad->particles.size(); i++) {
                 //calculate the forces of the particles on each other in the subquadtree
                 for (int j = 0; j < subquad->particles.size(); j++) {
+                    #pragma omp critical
                     if(i != j)
                         apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
                 }
@@ -99,27 +102,11 @@ int main( int argc, char **argv )
         }
 
 
-        //  move particles
-        // for(std::list<Quadtree*>::iterator it = leaves->begin(); it != leaves->end(); ++it){
-        //     Quadtree* subquad = *it;
-        //     for (int i = 0; i < subquad->particles.size(); i++) {
-        //         move( *subquad->particles[i] );
-        //          //check if the particle moves out of a boundry, if so, remove it then reinsert it	
-        //         if(!subquad->inboundary(subquad->particles[i])){
-        //             particle_t* p = subquad->particles[i];
-        //             p->ax = p->ay = 0;
-        //             subquad->particles.erase(subquad->particles.begin() + i);
-        //             subquad->calculateCenterOfMass();
-        //             tree->insert(p);
-        //         }
-        //     }
-        // }
-            //move( particles[i] );
+        //move( particles[i] );
         #pragma omp for 
         for( int i = 0; i < n; i++ )
         {
             move( particles[i] );
-        }
         }
 
        	
@@ -142,6 +129,7 @@ int main( int argc, char **argv )
           if( fsave && (step%SAVEFREQ) == 0 )
               save( fsave, n, particles );
         }
+    }
     }
 
     simulation_time = read_timer( ) - simulation_time;
