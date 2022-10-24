@@ -57,9 +57,7 @@ int main( int argc, char **argv )
 
     
 
-    #pragma omp parallel private(dmin) 
-    {
-        numthreads = omp_get_num_threads();
+
 
     for( int step = 0; step < NSTEPS; step++ )
     {
@@ -74,10 +72,9 @@ int main( int argc, char **argv )
             tree->insert(&particles[i]);
         }
         
-
-        
-
-
+        #pragma omp parallel private(dmin, davg, navg)
+        {
+        numthreads = omp_get_num_threads();
         #pragma omp for
         for( int i = 0; i < n; i++ )
         {
@@ -86,7 +83,7 @@ int main( int argc, char **argv )
 
         std::vector <Quadtree*>* leaves = tree->getLeaves(new std::vector <Quadtree*>());
         
-        #pragma omp for reduction (+:navg) reduction(+:davg) schedule(dynamic, 1)
+        #pragma omp for schedule(static)
         for (int qt_iter=0; qt_iter<leaves->size(); qt_iter++) {
             Quadtree* subquad = (*leaves)[qt_iter];
 
@@ -94,7 +91,6 @@ int main( int argc, char **argv )
             for (int i = 0; i < subquad->particles.size(); i++) {
                 //calculate the forces of the particles on each other in the subquadtree
                 for (int j = 0; j < subquad->particles.size(); j++) {
-                    #pragma omp critical
                     if(i != j)
                         apply_force( *subquad->particles[i], *subquad->particles[j],&dmin,&davg,&navg);
                 }
@@ -108,6 +104,7 @@ int main( int argc, char **argv )
         {
             move( particles[i] );
         }
+    }
 
        	
 
@@ -127,9 +124,8 @@ int main( int argc, char **argv )
           //  save if necessary
           #pragma omp master
           if( fsave && (step%SAVEFREQ) == 0 )
-              save( fsave, n, particles );
+            save( fsave, n, particles );
         }
-    }
     }
 
     simulation_time = read_timer( ) - simulation_time;
