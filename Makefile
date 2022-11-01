@@ -16,8 +16,8 @@ serial: serial.o common.o quadtree.o
 	$(CC) -o $@ serial.o common.o quadtree.o -lm -g
 autograder: autograder.o common.o
 	$(CC) -o $@ autograder.o common.o -lm -g
-openmp: openmp.o common.o
-	$(CC) -o $@ $(OPENMP) openmp.o common.o -lm -g
+openmp: openmp.o common.o quadtree.o
+	$(CC) -o $@ $(OPENMP) openmp.o common.o quadtree.o -lm -g
 mpi: mpi.o common.o
 	$(MPCC) -o $@ $(MPILIBS) mpi.o common.o -lm -g
 qtree_omp: qtree_omp.o common.o quadtree.o
@@ -25,7 +25,7 @@ qtree_omp: qtree_omp.o common.o quadtree.o
 
 autograder.o: autograder.cpp common.h
 	$(CC) -c $(CFLAGS) autograder.cpp -g
-openmp.o: openmp.cpp common.h
+openmp.o: openmp.cpp common.h quadtree.hpp
 	$(CC) -c $(OPENMP) $(CFLAGS) openmp.cpp -g
 serial.o: serial.cpp common.h
 	$(CC) -c $(CFLAGS) serial.cpp -g

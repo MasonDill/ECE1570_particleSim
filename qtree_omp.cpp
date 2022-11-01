@@ -74,10 +74,6 @@ int main( int argc, char **argv )
             tree->insert(&particles[i]);
         }
         
-
-        
-
-
         #pragma omp for
         for( int i = 0; i < n; i++ )
         {
