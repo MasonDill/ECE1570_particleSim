@@ -13,13 +13,6 @@ double size;
 //
 //  tuned constants
 //
-// particles/area
-// area / particles
-#define density 0.0005
-#define mass    0.01
-#define cutoff  0.01
-#define min_r   (cutoff/100)
-#define dt      0.0005
 
 //
 //  timer
@@ -43,17 +36,7 @@ double read_timer( )
 //
 void set_size( int n )
 {
-    //size^2 = area
-    //density = area/n
-    //area = density * n
-    //->size^2 = density * n
-    
     size = sqrt( density * n );
-}
-
-double get_size()
-{
-    return size;
 }
 
 //
@@ -90,59 +73,30 @@ void init_particles( int n, particle_t *p )
         //
         p[i].vx = drand48()*2-1;
         p[i].vy = drand48()*2-1;
-
-        p[i].particle_mass = mass;
     }
     free( shuffle );
 }
 
-
-//
-// check if two particles are within cutoff distance
-//
-bool withinInteractionRange(particle_t &particle, particle_t &neighbor){
-    double dx = neighbor.x - particle.x;
-    double dy = neighbor.y - particle.y;
-    double r2 = dx * dx + dy * dy;
-    if(r2 <= cutoff * cutoff){
-        return false;
-    }
-    return true;
-}
 //
 //  interact two particles
 //
-void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg)
+void apply_force( particle_t &particle, particle_t &neighbor )
 {
+
     double dx = neighbor.x - particle.x;
     double dy = neighbor.y - particle.y;
-    
-    //C^2 = A^2 + B^2
     double r2 = dx * dx + dy * dy;
-    if( r2 > cutoff*cutoff)
+    if( r2 > cutoff*cutoff )
         return;
-    if (r2 != 0)
-        {
-	   if (r2/(cutoff*cutoff) < *dmin * (*dmin))
-	      *dmin = sqrt(r2)/cutoff;
-           (*davg) += sqrt(r2)/cutoff;
-           (*navg) ++;
-        }
     r2 = fmax( r2, min_r*min_r );
-    //euclidean distance between two particles
     double r = sqrt( r2 );
- 
+
     //
     //  very simple short-range repulsive force
-    //  we should multiply this mass by the number of particles in the quadtree section
+    //
     double coef = ( 1 - cutoff / r ) / r2 / mass;
     particle.ax += coef * dx;
-    particle.ay += coef * dy;   
-}
-
-double get_cutoff()
-{
-    return cutoff;
+    particle.ay += coef * dy;
 }
 
 //
