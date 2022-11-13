@@ -1,0 +1,9 @@
+n = 2000, simulation time = 3.55049 seconds, absmin = 0.763763, absavg = 0.958479
+n = 4000, simulation time = 7.32089 seconds, absmin = 0.751126, absavg = 0.958818
+n = 8000, simulation time = 15.4295 seconds, absmin = 0.755848, absavg = 0.958611
+n = 16000, simulation time = 32.5365 seconds, absmin = 0.736704, absavg = 0.959147
+n = 32000, simulation time = 70.5687 seconds, absmin = 0.738676, absavg = 0.958509
+n = 64000, simulation time = 152.544 seconds, absmin = 0.699504, absavg = 0.959114
+n = 128000, simulation time = 362.697 seconds, absmin = 0.669802, absavg = 0.958629
+n = 256000, simulation time = 980.227 seconds, absmin = 0.692707, absavg = 0.959008
+/var/spool/slurmd/job7196652/slurm_script: line 25: 14796 Segmentation fault      ./autograder -v serial -s serial.txt
